@@ -15,7 +15,7 @@ jobs:
 
   # ── 1. Tests automatisés ──────────────────────────────────────
   test:
-    name: 🧪 Tests
+    name:  Tests
     runs-on: ubuntu-latest
 
     services:
@@ -68,9 +68,10 @@ jobs:
           ACCESS_TOKEN_EXPIRE_MINUTES: 30
           ENV: test
           RABBITMQ_QUEUE: metrics
-          PYTHONPATH: src/server
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          cd src/server
+          PYTHONPATH=. pytest ../../tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          cd ../..
 
       - name:  Upload coverage
         uses: codecov/codecov-action@v4
