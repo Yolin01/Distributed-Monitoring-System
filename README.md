@@ -180,7 +180,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 # ── Base de données ───────────────────────────────
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/monitoring
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_PASSWORD=changez-moi
 POSTGRES_DB=monitoring
 
 # ── RabbitMQ ──────────────────────────────────────
@@ -208,7 +208,7 @@ disk:
 
 ---
 
-## 🐳 Lancement
+##  Lancement
 
 ### Démarrage complet
 
@@ -251,7 +251,7 @@ docker compose down -v
 
 ---
 
-## 💻 Utilisation
+##  Utilisation
 
 ### Interfaces disponibles
 
@@ -265,7 +265,7 @@ docker compose down -v
 
 ---
 
-### 🔐 API REST
+###  API REST
 
 #### 1. Obtenir un token JWT
 
@@ -321,7 +321,7 @@ GET /alerts/
 
 ---
 
-### 📊 Grafana — Configuration rapide
+###  Grafana — Configuration rapide
 
 #### Ajouter PostgreSQL comme datasource
 
