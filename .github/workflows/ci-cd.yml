@@ -198,6 +198,9 @@ jobs:
     environment: production
 
     steps:
+      - name:  Checkout
+        uses: actions/checkout@v4
+
       - name:  Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -208,6 +211,7 @@ jobs:
             cd /opt/monitoring
             git pull origin main
             docker compose pull
+            docker compose up -d
             docker compose up -d --no-build
             docker compose ps
             echo " Déploiement terminé"
