@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Environnement
+.env
+.env.local
+.env.*.local
+venv/
+env/
+ENV/
+
+# Base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+*.log
+*.pid
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Secrets
+*.key
+*.pem
+*.crt
+
+# Cache pytest
+src/server/.pytest_cache/
+src/server/.coverage
+src/server/test.db
+
+# Fichiers compilés Python
+src/server/app/**/__pycache__/

@@ -1,0 +1,18 @@
+# Seuils d'alerte
+cpu:
+  warning: 70
+  critical: 90
+
+memory:
+  warning: 75
+  critical: 90
+
+disk:
+  warning: 80
+  critical: 95
+
+# Fenêtre d'agrégation (secondes)
+aggregation_window: 60
+
+# Rétention des métriques
+retention_days: 30

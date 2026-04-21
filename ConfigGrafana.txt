@@ -1,0 +1,35 @@
+SELECT
+  timestamp AS time,
+  cpu_percent AS "CPU %",
+  n.name AS node
+FROM metrics m
+JOIN nodes n ON n.id = m.node_id
+WHERE timestamp >= NOW() - INTERVAL '5 minutes'
+ORDER BY timestamp ASC
+
+SELECT
+  timestamp AS time,
+  memory_percent AS "RAM %",
+  n.name AS node
+FROM metrics m
+JOIN nodes n ON n.id = m.node_id
+WHERE timestamp >= NOW() - INTERVAL '5 minutes'
+ORDER BY timestamp ASC
+
+SELECT
+  timestamp AS time,
+  disk_percent AS "Disk %",
+  n.name AS node
+FROM metrics m
+JOIN nodes n ON n.id = m.node_id
+WHERE timestamp >= NOW() - INTERVAL '5 minutes'
+ORDER BY timestamp ASC
+
+SELECT
+  timestamp AS time,
+  cpu_percent AS "CPU %",
+  memory_percent AS "RAM %",
+  disk_percent AS "Disk %"
+FROM metrics
+WHERE timestamp > NOW() - INTERVAL '5 minutes'
+ORDER BY timestamp

@@ -1,0 +1,24 @@
+# Surcharge automatique en développement local
+# Ce fichier est chargé automatiquement par docker compose
+# NE PAS committer de secrets ici
+
+services:
+  server:
+    volumes:
+      - ./src/server:/app        # Hot-reload du code
+      - ./tests:/app/tests       # Accès aux tests
+      - ./config:/app/config
+      - ./scripts:/app/scripts
+    environment:
+      - ENV=development
+      - LOG_LEVEL=DEBUG
+
+  agent:
+    environment:
+      - ENV=development
+    deploy:
+      replicas: 1                # 1 seul agent en dev
+
+  postgres:
+    ports:
+      - "5432:5432"              # Accès direct depuis l'hôte (DBeaver, etc.)
