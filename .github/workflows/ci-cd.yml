@@ -69,9 +69,7 @@ jobs:
           ENV: test
           RABBITMQ_QUEUE: metrics
         run: |
-          cd src/server
-          PYTHONPATH=. pytest ../../tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
-          cd ../..
+          pytest tests/ -v --cov=src/server/app --cov-report=xml --cov-report=term-missing
 
       - name:  Upload coverage
         uses: codecov/codecov-action@v4
