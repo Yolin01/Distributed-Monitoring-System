@@ -1,0 +1,385 @@
+{
+  "info": {
+    "name": "Monitoring Distribué — API Complète",
+    "description": "Collection complète pour tester l'API de monitoring distribué.\n\n## Utilisation\n1. Exécuter 'Login' en premier → le token est sauvegardé automatiquement\n2. Toutes les autres requêtes utilisent ce token via {{token}}\n\n## Variables\n- base_url : http://localhost:8000\n- token : rempli automatiquement après login",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "node_id", "value": "1", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": " Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health",
+            "description": "Vérifier que le serveur est opérationnel. Ne nécessite pas d'authentification."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Status ok', () => {",
+              "  pm.expect(pm.response.json().status).to.eql('ok');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/",
+            "description": "Page d'accueil de l'API"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Message présent', () => {",
+              "  pm.expect(pm.response.json()).to.have.property('message');",
+              "});"
+            ]}
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": " Authentification",
+      "item": [
+        {
+          "name": "Login — Succès",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "admin" }
+              ]
+            },
+            "description": "Obtenir un token JWT. Le token est automatiquement sauvegardé dans {{token}}."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Token JWT présent', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.access_token).to.be.a('string');",
+              "  pm.expect(json.token_type).to.eql('bearer');",
+              "  pm.collectionVariables.set('token', json.access_token);",
+              "  console.log('Token sauvegardé:', json.access_token.substring(0,20) + '...');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Login — Mauvais mot de passe",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "mauvais_mdp" }
+              ]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));"
+            ]}
+          }]
+        },
+        {
+          "name": "Login — Utilisateur inconnu",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "inconnu" },
+                { "key": "password", "value": "test" }
+              ]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));"
+            ]}
+          }]
+        },
+        {
+          "name": "Accès sans token — Refusé",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metrics/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));"
+            ]}
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": " Nodes",
+      "item": [
+        {
+          "name": "Liste des nodes",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/nodes/",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Retourne tous les nodes enregistrés avec leur statut."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tableau retourné', () => {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "pm.test('Structure node correcte', () => {",
+              "  const nodes = pm.response.json();",
+              "  if (nodes.length > 0) {",
+              "    pm.expect(nodes[0]).to.have.property('id');",
+              "    pm.expect(nodes[0]).to.have.property('name');",
+              "    pm.expect(nodes[0]).to.have.property('status');",
+              "    pm.collectionVariables.set('node_id', nodes[0].id);",
+              "  }",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Détail d'un node",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/nodes/{{node_id}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200 ou 404', () => {",
+              "  pm.expect([200, 404]).to.include(pm.response.code);",
+              "});"
+            ]}
+          }]
+        }
+      ]
+    },
+
+    {
+      "name": " Métriques",
+      "item": [
+        {
+          "name": "Liste métriques (100 dernières)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/metrics/?limit=100",
+              "query": [{ "key": "limit", "value": "100" }]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Liste paginée des métriques. Paramètres: limit, offset, node_id"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tableau retourné', () => {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "pm.test('Structure métrique', () => {",
+              "  const metrics = pm.response.json();",
+              "  if (metrics.length > 0) {",
+              "    pm.expect(metrics[0]).to.have.property('cpu_percent');",
+              "    pm.expect(metrics[0]).to.have.property('memory_percent');",
+              "    pm.expect(metrics[0]).to.have.property('disk_percent');",
+              "    pm.expect(metrics[0]).to.have.property('timestamp');",
+              "  }",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Liste métriques — Pagination",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/metrics/?limit=5&offset=0",
+              "query": [
+                { "key": "limit", "value": "5" },
+                { "key": "offset", "value": "0" }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Max 5 résultats', () => {",
+              "  pm.expect(pm.response.json().length).to.be.lte(5);",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Dernières métriques par node",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metrics/latest",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Retourne la dernière métrique de chaque node enregistré."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tableau retourné', () => {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "pm.test('Structure correcte', () => {",
+              "  const data = pm.response.json();",
+              "  if (data.length > 0) {",
+              "    pm.expect(data[0]).to.have.property('node');",
+              "    pm.expect(data[0]).to.have.property('latest_metric');",
+              "  }",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Métriques node — 1 heure",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/metrics/node/{{node_id}}?minutes=60",
+              "query": [{ "key": "minutes", "value": "60" }]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Historique des métriques d'un node pour les N dernières minutes."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tableau trié par timestamp', () => {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.be.an('array');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Stats node (min/max/moyenne)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/metrics/node/{{node_id}}/stats?minutes=60",
+              "query": [{ "key": "minutes", "value": "60" }]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Statistiques agrégées: minimum, maximum et moyenne de CPU/RAM/Disque."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Champs stats présents', () => {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.have.property('cpu_avg');",
+              "  pm.expect(data).to.have.property('cpu_min');",
+              "  pm.expect(data).to.have.property('cpu_max');",
+              "  pm.expect(data).to.have.property('memory_avg');",
+              "  pm.expect(data).to.have.property('total_records');",
+              "});",
+              "pm.test('Valeurs numériques', () => {",
+              "  const data = pm.response.json();",
+              "  pm.expect(data.cpu_avg).to.be.a('number');",
+              "  pm.expect(data.total_records).to.be.a('number');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Stream temps réel (SSE)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/metrics/live",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Accept", "value": "text/event-stream" }
+            ],
+            "description": "Server-Sent Events — flux de métriques en temps réel. Utiliser dans un browser ou curl."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": " Alertes",
+      "item": [
+        {
+          "name": "Liste des alertes",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/alerts/",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Retourne toutes les alertes déclenchées."
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Tableau retourné', () => {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]}
+          }]
+        },
+        {
+          "name": "Alertes non acquittées",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/alerts/?acknowledged=false",
+              "query": [{ "key": "acknowledged", "value": "false" }]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));"
+            ]}
+          }]
+        }
+      ]
+    }
+
+  ]
+}
